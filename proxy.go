@@ -29,10 +29,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/viki-org/dnscache"
-
-	"github.com/ouqiang/goproxy/cert"
 	"github.com/ouqiang/websocket"
+	"github.com/viki-org/dnscache"
+	"goproxy/cert"
 )
 
 const (
@@ -340,14 +339,20 @@ func (p *Proxy) httpProxy(ctx *Context, rw http.ResponseWriter) {
 			rw.WriteHeader(http.StatusBadGateway)
 			return
 		}
+		hasBody := resp != nil && resp.Body != nil
 		defer func() {
-			_ = resp.Body.Close()
+			if hasBody {
+				_ = resp.Body.Close()
+			}
 		}()
 		CopyHeader(rw.Header(), resp.Header)
 		rw.WriteHeader(resp.StatusCode)
-		buf := bufPool.Get().([]byte)
-		_, _ = io.CopyBuffer(rw, resp.Body, buf)
-		bufPool.Put(buf)
+
+		if hasBody {
+			buf := bufPool.Get().([]byte)
+			_, _ = io.CopyBuffer(rw, resp.Body, buf)
+			bufPool.Put(buf)
+		}
 	})
 }
 
