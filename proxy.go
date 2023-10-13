@@ -29,9 +29,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/kuangcp/goproxy/cert"
 	"github.com/ouqiang/websocket"
 	"github.com/viki-org/dnscache"
-	"goproxy/cert"
 )
 
 const (
@@ -252,7 +252,7 @@ type Proxy struct {
 	dnsCache           *dnscache.Resolver
 }
 
-var _ http.Handler = &Proxy{}
+//var _ http.Handler = &Proxy{}
 
 // ServeHTTP 实现了http.Handler接口
 func (p *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -290,6 +290,10 @@ func (p *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 // ClientConnNum 获取客户端连接数
 func (p *Proxy) ClientConnNum() int32 {
 	return atomic.LoadInt32(&p.clientConnNum)
+}
+
+func (p *Proxy) DnsCache(domain string) ([]net.IP, error) {
+	return p.dnsCache.Lookup(domain)
 }
 
 // DoRequest 执行HTTP请求，并调用responseFunc处理response
